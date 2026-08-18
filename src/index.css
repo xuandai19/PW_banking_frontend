@@ -1,0 +1,398 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 220px;
+    background: #1565c0;
+    color: white;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    margin-bottom: 30px;
+}
+
+.sidebar a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.sidebar a.active {
+    background: rgba(255,255,255,0.2);
+}
+
+.main {
+    flex: 1;
+    background: #f5f7fa;
+}
+
+.header {
+    height: 70px;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid #ddd;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-user button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #1565c0;
+    color: white;
+    cursor: pointer;
+}
+
+.role-badge,
+.status-pill {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.status-pill.approved {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-pill.rejected {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.status-pill.pending {
+    background: #fff8e1;
+    color: #ef6c00;
+}
+
+.muted-text {
+    color: #777;
+    font-size: 12px;
+}
+
+.empty-cell {
+    text-align: center;
+    color: #777;
+}
+
+.content {
+    padding: 24px;
+}
+
+.toolbar{
+    margin:20px 0;
+    display:flex;
+    justify-content:space-between;
+}
+
+.toolbar input{
+    width:300px;
+    padding:10px;
+}
+
+.toolbar select {
+    min-width: 180px;
+    padding: 10px;
+}
+
+.toolbar button{
+    padding:10px 20px;
+    background:#1565c0;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:12px;
+}
+
+th{
+    background:#1565c0;
+    color:white;
+}
+
+td button{
+    margin-right:8px;
+    padding:6px 12px;
+}
+
+.modal{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content{
+    width: 400px;
+    max-width: 92vw;
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+
+.modal-content h2{
+
+    margin-bottom:20px;
+
+}
+
+.modal-content input{
+
+    width:100%;
+
+    padding:10px;
+
+    margin-bottom:15px;
+
+}
+
+.modal-footer{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:10px;
+
+}
+
+.login-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f5f7fa;
+}
+
+.login-form {
+    width: 350px;
+    padding: 30px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.login-form input {
+    padding: 10px;
+}
+
+.login-form button {
+    padding: 10px;
+    background: #1565c0;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.role-hints {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.role-hints button {
+    background: #e3f2fd;
+    color: #1565c0;
+    border-radius: 6px;
+}
+
+.error-text {
+    color: #c62828;
+    font-size: 14px;
+}
+
+.dashboard{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+}
+
+.card{
+    width:220px;
+    padding:20px;
+    border-radius:10px;
+    background:#fff;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+.card h3{
+    margin:0;
+    color:#777;
+}
+
+.card h1{
+    margin-top:15px;
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:25px;
+}
+
+.dashboard-card{
+
+    background:white;
+
+    border-radius:15px;
+
+    padding:25px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+    transition:.25s;
+
+    cursor:pointer;
+}
+
+.dashboard-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:0 15px 35px rgba(0,0,0,.15);
+
+}
+
+.dashboard-card h2{
+
+    font-size:40px;
+
+}
+
+.dashboard-card p{
+
+    font-size:35px;
+
+    font-weight:bold;
+
+}
+
+.dashboard-card button{
+
+    margin-top:20px;
+
+    border:none;
+
+    padding:10px 20px;
+
+    border-radius:8px;
+
+    background:#1976d2;
+
+    color:white;
+
+    cursor:pointer;
+
+}
+
+
+/* Users page helpers (không ghi đè .modal gốc) */
+.success-text {
+    color: #2e7d32;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.role-hints {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    justify-content: center;
+}
+
+.role-hints button {
+    padding: 6px 12px;
+    border: 1px solid #1565c0;
+    border-radius: 6px;
+    background: #e3f2fd;
+    color: #1565c0;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.role-hints button:hover {
+    background: #bbdefb;
+}
+
+.auth-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.auth-links a {
+    color: #1565c0;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.auth-links a:hover {
+    text-decoration: underline;
+}
+
+.dev-link-box {
+    margin-top: 12px;
+    padding: 12px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 8px;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+.dev-link-box a {
+    display: block;
+    margin-top: 6px;
+    color: #ef6c00;
+}
+
+.login-form button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
