@@ -1,3 +1,4 @@
+import Pagination from "../components/Pagination";
 import { useEffect, useState } from "react";
 import {
   getBranches,
@@ -8,7 +9,7 @@ import {
 } from "../services/branchApi";
 
 import { getBanks } from "../services/bankApi";
-import { hasRole, ROLES } from "../utils/auth";
+import { hasRole, ROLES, isReadOnlyScope } from "../utils/auth";
 
 // Hàm hỗ trợ loại bỏ dấu tiếng Việt và đưa về chữ thường
 const removeAccents = (str) => {
@@ -22,7 +23,12 @@ const removeAccents = (str) => {
 };
 
 function Branch() {
-  const canDeleteBranch = hasRole(ROLES.ADMIN);
+  const [page, setPage] = useState(1);
+
+  const canDeleteBranch = hasRole(ROLES.ADMIN, ROLES.SUBADMIN, ROLES.BANK);
+  const readOnly = isReadOnlyScope();
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+  const isBankManager = currentUser?.role === ROLES.BANK;
   const [branches, setBranches] = useState([]);
   const [banks, setBanks] = useState([]);
 
@@ -31,6 +37,7 @@ function Branch() {
   const [showModal, setShowModal] = useState(false);
   const [editingBranch, setEditingBranch] = useState(null);
   const [deleteBranchId, setDeleteBranchId] = useState(null);
+  const [deleteBranchAccounts, setDeleteBranchAccounts] = useState([]);
 
   const [newBranch, setNewBranch] = useState({
     name: "",
@@ -42,6 +49,7 @@ function Branch() {
   const [branchAccounts, setBranchAccounts] = useState([]);
   const [showAccounts, setShowAccounts] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
+  const [managementAccount, setManagementAccount] = useState(null);
 
   useEffect(() => {
     loadBranches();
@@ -78,6 +86,8 @@ function Branch() {
         const response = await createBranch(newBranch);
         if (response.status === 202) {
           alert(response.data.message);
+        } else if (response.data?.managementAccount) {
+          setManagementAccount(response.data.managementAccount);
         }
       }
 
@@ -103,7 +113,7 @@ function Branch() {
       name: branch.name,
       address: branch.address,
       phone: branch.phone,
-      bankId: branch.bankId
+      bankId: isBankManager ? currentUser.bankId : branch.bankId
     });
     setShowModal(true);
   };
@@ -115,7 +125,11 @@ function Branch() {
       await loadBranches();
       setDeleteBranchId(null);
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to delete");
+      if (error.response?.status === 409 || error.response?.data?.code === "BRANCH_HAS_ACCOUNTS") {
+        setDeleteBranchAccounts(error.response.data.accounts || []);
+      } else {
+        alert(error.response?.data?.message || "Failed to delete");
+      }
     }
   };
 
@@ -126,12 +140,16 @@ function Branch() {
       name: "",
       address: "",
       phone: "",
-      bankId: ""
+      bankId: isBankManager ? currentUser.bankId : ""
     });
     setShowModal(true);
   };
 
   // Lọc không phân biệt dấu và chữ hoa/thường theo: nameBranch, addressBranch, phoneBranch, nameBank
+  const availableBanks = isBankManager
+    ? banks.filter((bank) => Number(bank.id) === Number(currentUser?.bankId))
+    : banks;
+
   const filteredBranches = branches.filter((branch) => {
     const cleanKeyword = removeAccents(keyword.trim());
 
@@ -141,7 +159,6 @@ function Branch() {
     const cleanAddress = removeAccents(branch.address);
     const cleanPhone = removeAccents(branch.phone);
     const cleanBankName = removeAccents(bankName);
-
     return (
       cleanName.includes(cleanKeyword) ||
       cleanAddress.includes(cleanKeyword) ||
@@ -149,6 +166,9 @@ function Branch() {
       cleanBankName.includes(cleanKeyword)
     );
   });
+
+
+  const pagedFilteredbranches = filteredBranches.slice((page - 1) * 10, page * 10);
 
   // Gọi API lấy danh sách tài khoản theo chi nhánh
   const handleViewAccounts = async (branch) => {
@@ -175,8 +195,18 @@ function Branch() {
           onChange={(e) => setKeyword(e.target.value)}
         />
 
-        <button onClick={handleOpenAddModal}>Add Branch</button>
+        {!readOnly && <button onClick={handleOpenAddModal}>Add Branch</button>}
       </div>
+
+      {managementAccount && (
+        <div className="dev-link-box" style={{marginBottom:16}}>
+          <strong>Tài khoản quản lý Branch vừa tạo:</strong>
+          <div>Username: {managementAccount.username}</div>
+          <div>Password: {managementAccount.password}</div>
+          <div>Email: {managementAccount.email} (đã xác thực)</div>
+          <button onClick={()=>setManagementAccount(null)}>Đóng</button>
+        </div>
+      )}
 
       <table>
         <thead>
@@ -191,9 +221,9 @@ function Branch() {
         </thead>
 
         <tbody>
-          {filteredBranches.map((branch) => (
+          {pagedFilteredbranches.map((branch, index) => (
             <tr key={branch.id}>
-              <td>{branch.id}</td>
+              <td>{(page - 1) * 10 + index + 1}</td>
               <td>{branch.name}</td>
               <td>{branch.address}</td>
               <td>{branch.phone}</td>
@@ -201,7 +231,7 @@ function Branch() {
                 {banks.find((bank) => bank.id === branch.bankId)?.name || "Unknown"}
               </td>
               <td>
-                <button onClick={() => handleEdit(branch)}>Edit</button>
+                {!readOnly && <button onClick={() => handleEdit(branch)}>Edit</button>}
                 {canDeleteBranch && (
                   <button onClick={() => setDeleteBranchId(branch.id)}>Delete</button>
                 )}
@@ -213,6 +243,7 @@ function Branch() {
           ))}
         </tbody>
       </table>
+            <Pagination page={page} pageSize={10} total={filteredBranches.length} onPageChange={setPage} />
 
       {/* Modal Thêm / Sửa Branch */}
       {showModal && (
@@ -266,7 +297,7 @@ function Branch() {
               <label>Bank:</label>
               <select
                 value={newBranch.bankId}
-                disabled={Boolean(editingBranch)}
+                disabled={isBankManager || Boolean(editingBranch)}
                 onChange={(e) =>
                   setNewBranch({
                     ...newBranch,
@@ -275,7 +306,7 @@ function Branch() {
                 }
               >
                 <option value="">Select Bank</option>
-                {banks.map((bank) => (
+                {availableBanks.map((bank) => (
                   <option key={bank.id} value={bank.id}>
                     {bank.name}
                   </option>
@@ -318,6 +349,20 @@ function Branch() {
         </div>
       )}
 
+      {deleteBranchId && deleteBranchAccounts.length > 0 && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Không thể xóa chi nhánh</h3>
+            <p>Chi nhánh đang có {deleteBranchAccounts.length} tài khoản. Vui lòng xóa các tài khoản thuộc chi nhánh trước.</p>
+            <table>
+              <thead><tr><th>ID</th><th>Số tài khoản</th><th>Chủ tài khoản</th></tr></thead>
+              <tbody>{deleteBranchAccounts.map((a, index) => <tr key={a.id}><td>{index + 1}</td><td>{a.accountNumber}</td><td>{a.ownerName}</td></tr>)}</tbody>
+            </table>
+            <div style={{marginTop:"15px"}}><button onClick={()=>{setDeleteBranchId(null);setDeleteBranchAccounts([])}}>Đóng</button></div>
+          </div>
+        </div>
+      )}
+
       {/* Modal Hiển thị Danh sách Accounts */}
       {showAccounts && selectedBranch && (
         <div className="modal">
@@ -336,9 +381,9 @@ function Branch() {
                   </tr>
                 </thead>
                 <tbody>
-                  {branchAccounts.map((account) => (
+                  {branchAccounts.map((account, index) => (
                     <tr key={account.id}>
-                      <td>{account.id}</td>
+                      <td>{index + 1}</td>
                       <td>{account.accountNumber || account.number}</td>
                       <td>{account.balance}</td>
                     </tr>

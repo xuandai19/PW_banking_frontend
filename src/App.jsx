@@ -4,7 +4,6 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
-import ResendVerification from "./pages/ResendVerification";
 import Dashboard from "./pages/Dashboard";
 import Bank from "./pages/Bank";
 import Branch from "./pages/Branch";
@@ -24,7 +23,6 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/resend-verification" element={<ResendVerification />} />
 
             <Route
                 path="/"
@@ -46,7 +44,7 @@ function App() {
                 <Route
                     path="branches"
                     element={
-                        <RoleRoute roles={[ROLES.ADMIN, ROLES.SUBADMIN]}>
+                        <RoleRoute roles={[ROLES.ADMIN, ROLES.SUBADMIN, ROLES.BANK, ROLES.BRANCH]}>
                             <Branch />
                         </RoleRoute>
                     }

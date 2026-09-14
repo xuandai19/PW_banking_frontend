@@ -5,15 +5,10 @@ import { login } from "../services/authApi";
 function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
 
     const navigate = useNavigate();
-
-    const fillRole = (nextUsername) => {
-        setUsername(nextUsername);
-        setPassword("123456");
-        setError("");
-    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -34,40 +29,37 @@ function Login() {
             <form className="login-form" onSubmit={handleLogin}>
                 <h2>Banking Management</h2>
 
-                <div className="role-hints">
-                    <button type="button" onClick={() => fillRole("admin")}>
-                        Admin
-                    </button>
-                    <button type="button" onClick={() => fillRole("subadmin")}>
-                        Subadmin
-                    </button>
-                    <button type="button" onClick={() => fillRole("employee")}>
-                        Employee
-                    </button>
-                </div>
-
                 <input
                     type="text"
-                    placeholder="Username"
+                    placeholder="Username hoặc Email"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     autoComplete="username"
                 />
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                />
+                <div className="password-input-wrapper">
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        autoComplete="current-password"
+                    />
+                    <button
+                        type="button"
+                        className="toggle-password-btn"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label="Toggle password visibility"
+                    >
+                        {showPassword ? "👁️" : "👁️‍🗨️"}
+                    </button>
+                </div>
 
                 <button type="submit">Đăng nhập</button>
                 {error && <p className="error-text">{error}</p>}
 
                 <div className="auth-links">
                     <Link to="/forgot-password">Quên mật khẩu?</Link>
-                    <Link to="/resend-verification">Gửi lại email xác thực</Link>
                 </div>
             </form>
         </div>

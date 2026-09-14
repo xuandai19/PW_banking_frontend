@@ -47,9 +47,6 @@ function VerifyEmail() {
 
                 <div className="auth-links" style={{ marginTop: 20 }}>
                     <Link to="/login">Đăng nhập</Link>
-                    {status === "error" && (
-                        <Link to="/resend-verification">Gửi lại email xác thực</Link>
-                    )}
                 </div>
             </div>
         </div>

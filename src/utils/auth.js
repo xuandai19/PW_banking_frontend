@@ -1,7 +1,9 @@
 export const ROLES = {
     ADMIN: "ADMIN",
     SUBADMIN: "SUBADMIN",
-    EMPLOYEE: "EMPLOYEE"
+    EMPLOYEE: "EMPLOYEE",
+    BANK: "BANK",
+    BRANCH: "BRANCH"
 };
 
 export function getCurrentUser() {
@@ -32,11 +34,19 @@ export function canManageBank() {
 }
 
 export function canManageBranch() {
-    return hasRole(ROLES.ADMIN, ROLES.SUBADMIN);
+    return hasRole(ROLES.ADMIN, ROLES.SUBADMIN, ROLES.BANK);
 }
 
 export function canManageAccount() {
-    return hasRole(ROLES.ADMIN, ROLES.SUBADMIN, ROLES.EMPLOYEE);
+    return hasRole(ROLES.ADMIN, ROLES.SUBADMIN, ROLES.EMPLOYEE, ROLES.BANK, ROLES.BRANCH);
+}
+
+export function isReadOnlyScope() {
+    return hasRole(ROLES.BRANCH);
+}
+
+export function canExecuteTransaction() {
+    return hasRole(ROLES.ADMIN, ROLES.SUBADMIN, ROLES.EMPLOYEE, ROLES.BANK, ROLES.BRANCH);
 }
 
 export function canCreateUser() {

@@ -13,11 +13,12 @@ export const createUser = (data) => api.post("/auth/users", data);
 export const verifyEmail = (token) =>
     api.post("/auth/verify-email", { token });
 
-export const resendVerification = (data) =>
-    api.post("/auth/resend-verification", data);
 
 export const forgotPassword = (data) =>
     api.post("/auth/forgot-password", data);
 
 export const resetPassword = (data) =>
     api.post("/auth/reset-password", data);
+
+export const updateUser = (id, data) => api.put(`/auth/users/${id}`, data);
+export const deleteUser = (id) => api.delete(`/auth/users/${id}`);

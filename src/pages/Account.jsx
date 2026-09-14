@@ -1,3 +1,5 @@
+import { getCurrentUser, ROLES } from "../utils/auth";
+import Pagination from "../components/Pagination";
 import { useEffect, useState } from "react";
 import {
   getAccounts,
@@ -20,6 +22,10 @@ const removeAccents = (str) => {
 };
 
 function Account() {
+  const currentUser = getCurrentUser();
+  const readOnly = false;
+  const [page, setPage] = useState(1);
+
   const [accounts, setAccounts] = useState([]);
   const [branches, setBranches] = useState([]);
 
@@ -48,6 +54,11 @@ function Account() {
     loadBranches();
     loadBanks();
   }, []);
+
+  useEffect(() => {
+    if (currentUser?.role === ROLES.BANK && banks.length) setSelectedBank(banks[0].id);
+    if (currentUser?.role === ROLES.BRANCH && branches.length) setSelectedBank(branches[0].bankId);
+  }, [banks.length, branches.length]);
 
   const loadAccounts = async () => {
     try {
@@ -85,7 +96,12 @@ function Account() {
   const handleSave = async () => {
     try {
       if (editingAccount) {
-        const response = await updateAccount(editingAccount.id, newAccount);
+        // Chỉ gửi các trường được phép sửa — không gửi balance / accountNumber
+        const payload = {
+          ownerName: newAccount.ownerName,
+          branchId: newAccount.branchId
+        };
+        const response = await updateAccount(editingAccount.id, payload);
         if (response.status === 202) {
           alert(response.data.message);
         }
@@ -164,13 +180,15 @@ function Account() {
 
     const branch = branches.find((b) => b.id === account.branchId);
     const cleanBranchName = removeAccents(branch?.name);
-
-    return (
+  
+      return (
       cleanAccountNumber.includes(cleanKeyword) ||
       cleanOwnerName.includes(cleanKeyword) ||
       cleanBranchName.includes(cleanKeyword)
     );
   });
+
+  const pagedFilteredaccounts = filteredAccounts.slice((page - 1) * 10, page * 10);
 
   return (
     <>
@@ -184,7 +202,7 @@ function Account() {
           onChange={(e) => setKeyword(e.target.value)}
         />
 
-        <button onClick={handleOpenAddModal}>Add Account</button>
+        {!readOnly && <button onClick={handleOpenAddModal}>Add Account</button>}
       </div>
 
       <table>
@@ -200,9 +218,9 @@ function Account() {
         </thead>
 
         <tbody>
-          {filteredAccounts.map((account) => (
+          {pagedFilteredaccounts.map((account, index) => (
             <tr key={account.id}>
-              <td>{account.id}</td>
+              <td>{(page - 1) * 10 + index + 1}</td>
               <td>{account.accountNumber}</td>
               <td>{account.ownerName}</td>
               <td>{account.balance}</td>
@@ -211,15 +229,16 @@ function Account() {
                   ?.name || "Unknown"}
               </td>
               <td>
-                <button onClick={() => handleEdit(account)}>Edit</button>
-                <button onClick={() => setDeleteAccountId(account.id)}>
+                {!readOnly && <button onClick={() => handleEdit(account)}>Edit</button>}
+                {!readOnly && <button onClick={() => setDeleteAccountId(account.id)}>
                   Delete
-                </button>
+                </button>}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+            <Pagination page={page} pageSize={10} total={filteredAccounts.length} onPageChange={setPage} />
 
       {/* Modal Thêm / Sửa Account */}
       {showModal && (
@@ -231,6 +250,8 @@ function Account() {
               <input
                 placeholder="Account Number"
                 value={newAccount.accountNumber}
+                disabled={!!editingAccount}
+                title={editingAccount ? "Số tài khoản không được thay đổi" : ""}
                 onChange={(e) =>
                   setNewAccount({
                     ...newAccount,
@@ -238,6 +259,11 @@ function Account() {
                   })
                 }
               />
+              {editingAccount && (
+                <p className="muted-text" style={{ marginTop: 4, color: "#c62828" }}>
+                  Số tài khoản không được thay đổi.
+                </p>
+              )}
             </div>
 
             <div>
@@ -258,6 +284,8 @@ function Account() {
                 type="number"
                 placeholder="Balance"
                 value={newAccount.balance}
+                disabled={!!editingAccount}
+                title={editingAccount ? "Số dư chỉ cập nhật qua nạp/rút/chuyển tiền" : ""}
                 onChange={(e) =>
                   setNewAccount({
                     ...newAccount,
@@ -265,38 +293,30 @@ function Account() {
                   })
                 }
               />
+              {editingAccount && (
+                <p className="muted-text" style={{ marginTop: 4, color: "#ef6c00" }}>
+                  Số dư chỉ được cập nhật qua Deposit / Withdraw / Transfer.
+                </p>
+              )}
             </div>
 
             {/* Step 4: Dropdown chọn Ngân hàng */}
-            <div>
-              <label>Bank: </label>
-              <select
-                value={selectedBank}
-                disabled={editingAccount !== null}
-                onChange={(e) => {
-                  const bankId = Number(e.target.value);
-                  setSelectedBank(bankId);
-                  setNewAccount({
-                    ...newAccount,
-                    branchId: ""
-                  });
-                }}
-              >
-                <option value="">Select Bank</option>
-                {banks.map((bank) => (
-                  <option key={bank.id} value={bank.id}>
-                    {bank.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {currentUser?.role !== ROLES.BANK && currentUser?.role !== ROLES.BRANCH && (
+              <div>
+                <label>Bank: </label>
+                <select value={selectedBank} disabled={editingAccount !== null || currentUser?.role === ROLES.BRANCH} onChange={(e) => { setSelectedBank(Number(e.target.value)); setNewAccount({ ...newAccount, branchId: "" }); }}>
+                  <option value="">Select Bank</option>
+                  {banks.map((bank) => <option key={bank.id} value={bank.id}>{bank.name}</option>)}
+                </select>
+              </div>
+            )}
 
             {/* Step 5: Dropdown chọn Chi nhánh (Đã lọc theo Bank) */}
             <div>
               <label>Branch: </label>
               <select
                 value={newAccount.branchId}
-                disabled={editingAccount !== null}
+                disabled={editingAccount !== null || currentUser?.role === ROLES.BRANCH}
                 onChange={(e) =>
                   setNewAccount({
                     ...newAccount,

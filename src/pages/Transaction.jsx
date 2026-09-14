@@ -1,3 +1,4 @@
+import Pagination from "../components/Pagination";
 import React, { useEffect, useState, useMemo } from "react";
 import {
     deposit,
@@ -8,8 +9,13 @@ import {
 import { getAccounts } from "../services/accountApi";
 import { getBanks } from "../services/bankApi";
 import { getBranches } from "../services/branchApi";
+import { getCurrentUser, canExecuteTransaction } from "../utils/auth";
 
 function Transaction() {
+    const currentUser = getCurrentUser();
+    const readOnly = !canExecuteTransaction();
+    const [page, setPage] = useState(1);
+
     // Master data từ API
     const [banks, setBanks] = useState([]);
     const [branches, setBranches] = useState([]);
@@ -238,31 +244,47 @@ function Transaction() {
         return acc ? `${acc.accountNumber} - ${acc.ownerName}` : "-";
     };
 
+    const pagedFilteredtransactions = filteredTransactions.slice((page - 1) * 10, page * 10);
+
     const renderTypeBadge = (tType) => {
         if (tType === "DEPOSIT") return <span style={{ color: "#2e7d32", fontWeight: "bold" }}>🟢 + Deposit</span>;
         if (tType === "WITHDRAW") return <span style={{ color: "#c62828", fontWeight: "bold" }}>🔴 - Withdraw</span>;
         return <span style={{ color: "#1565c0", fontWeight: "bold" }}>🔵 ⇄ Transfer</span>;
     };
 
+
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif", maxWidth: "1200px", margin: "0 auto" }}>
+        <div className="page-shell" style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}>
             {/* Header + Action Button */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-                <h2 style={{ margin: 0 }}>Transaction Management</h2>
-                <button
-                    onClick={() => setShowModal(true)}
-                    style={{
-                        padding: "10px 20px",
-                        backgroundColor: "#007bff",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "5px",
-                        fontWeight: "bold",
-                        cursor: "pointer"
-                    }}
-                >
-                    + Execute Transaction
-                </button>
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "8px",
+                    flexShrink: 0
+                }}
+            >
+                <h2 style={{ margin: 0 }}>
+                    Transaction Management
+                </h2>
+
+                {!readOnly && (
+                    <button
+                        onClick={() => setShowModal(true)}
+                        style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#007bff",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "5px",
+                            fontWeight: "bold",
+                            cursor: "pointer"
+                        }}
+                    >
+                        + Execute Transaction
+                    </button>
+                )}
             </div>
 
             {/* Quick Cards Top Area */}
@@ -345,9 +367,9 @@ function Transaction() {
                             <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#888" }}>Không tìm thấy giao dịch nào</td>
                         </tr>
                     ) : (
-                        filteredTransactions.map((item) => (
+                        pagedFilteredtransactions.map((item, index) => (
                             <tr key={item.id} style={{ borderBottom: "1px solid #eee" }}>
-                                <td style={{ padding: "10px" }}>{item.id}</td>
+                                <td style={{ padding: "10px" }}>{(page - 1) * 10 + index + 1}</td>
                                 <td style={{ padding: "10px" }}>{renderTypeBadge(item.type)}</td>
                                 <td style={{ padding: "10px" }}><strong>{Number(item.amount).toLocaleString()} VNĐ</strong></td>
                                 <td style={{ padding: "10px" }}>{getAccountDisplay(item.fromAccountId || item.accountId)}</td>
@@ -359,6 +381,7 @@ function Transaction() {
                     )}
                 </tbody>
             </table>
+            <Pagination page={page} pageSize={10} total={filteredTransactions.length} onPageChange={setPage} />
 
             {/* MODAL GIAO DỊCH */}
             {showModal && (

@@ -1,3 +1,4 @@
+import Pagination from "../components/Pagination";
 import { useState, useEffect } from "react";
 import {
   getBanks,
@@ -19,6 +20,8 @@ const removeAccents = (str) => {
 };
 
 function Bank() {
+  const [page, setPage] = useState(1);
+
   const [banks, setBanks] = useState([]);
   const [keyword, setKeyword] = useState("");
 
@@ -32,11 +35,13 @@ function Bank() {
 
   const [editingBank, setEditingBank] = useState(null);
   const [deleteBankId, setDeleteBankId] = useState(null);
+  const [deleteBankBranches, setDeleteBankBranches] = useState([]);
 
   // States quản lý chi nhánh ngân hàng
   const [selectedBank, setSelectedBank] = useState(null);
   const [bankBranches, setBankBranches] = useState([]);
   const [showBranches, setShowBranches] = useState(false);
+  const [managementAccount, setManagementAccount] = useState(null);
 
   // Lấy danh sách Bank từ backend khi component mount
   useEffect(() => {
@@ -59,13 +64,15 @@ function Bank() {
     const cleanName = removeAccents(bank.name);
     const cleanCode = removeAccents(bank.code);
     const cleanAddress = removeAccents(bank.address);
-
     return (
       cleanName.includes(cleanKeyword) ||
       cleanCode.includes(cleanKeyword) ||
       cleanAddress.includes(cleanKeyword)
     );
   });
+
+
+  const pagedFilteredbanks = filteredBanks.slice((page - 1) * 10, page * 10);
 
   // Xử lý Add và Update với Backend
   const handleSave = async () => {
@@ -76,11 +83,10 @@ function Bank() {
 
     try {
       if (editingBank) {
-        // Update Bank
         await updateBank(editingBank.id, newBank);
       } else {
-        // Add Bank
-        await createBank(newBank);
+        const response = await createBank(newBank);
+        if (response.data?.managementAccount) setManagementAccount(response.data.managementAccount);
       }
 
       // Tải lại danh sách mới nhất từ server
@@ -126,7 +132,11 @@ function Bank() {
       setDeleteBankId(null);
     } catch (error) {
       console.error("Lỗi khi xoá bank:", error);
-      alert("Đã có lỗi xảy ra khi xoá!");
+      if (error.response?.status === 409 || error.response?.data?.code === "BANK_HAS_BRANCHES") {
+        setDeleteBankBranches(error.response.data.branches || []);
+      } else {
+        alert(error.response?.data?.message || "Đã có lỗi xảy ra khi xoá!");
+      }
     }
   };
 
@@ -155,8 +165,22 @@ function Bank() {
           onChange={(e) => setKeyword(e.target.value)}
         />
 
-        <button onClick={() => setShowModal(true)}>Add Bank</button>
+        <button onClick={() => {
+          setEditingBank(null);
+          setNewBank({ name: "", code: "", address: "" });
+          setShowModal(true);
+        }}>Add Bank</button>
       </div>
+
+      {managementAccount && (
+        <div className="dev-link-box" style={{marginBottom:16}}>
+          <strong>Tài khoản quản lý Bank vừa tạo:</strong>
+          <div>Username: {managementAccount.username}</div>
+          <div>Password: {managementAccount.password}</div>
+          <div>Email: {managementAccount.email} (đã xác thực)</div>
+          <button onClick={()=>setManagementAccount(null)}>Đóng</button>
+        </div>
+      )}
 
       <table>
         <thead>
@@ -170,9 +194,9 @@ function Bank() {
         </thead>
 
         <tbody>
-          {filteredBanks.map((bank) => (
+          {pagedFilteredbanks.map((bank, index) => (
             <tr key={bank.id}>
-              <td>{bank.id}</td>
+              <td>{(page - 1) * 10 + index + 1}</td>
               <td>{bank.name}</td>
               <td>{bank.code}</td>
               <td>{bank.address}</td>
@@ -185,6 +209,7 @@ function Bank() {
           ))}
         </tbody>
       </table>
+            <Pagination page={page} pageSize={10} total={filteredBanks.length} onPageChange={setPage} />
 
       {/* Modal Thêm / Sửa Ngân Hàng */}
       {showModal && (
@@ -258,14 +283,30 @@ function Bank() {
             <p>Are you sure you want to delete this bank?</p>
 
             <div className="modal-footer">
-              <button onClick={() => setDeleteBankId(null)}>Cancel</button>
+              <button onClick={() => { setDeleteBankId(null); setDeleteBankBranches([]); }}>Cancel</button>
               <button onClick={handleDelete}>Delete</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Xem Danh Sách Chi Nhánh */}
+      {deleteBankId && deleteBankBranches.length > 0 && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Không thể xóa ngân hàng</h2>
+            <p>Ngân hàng này đang có {deleteBankBranches.length} chi nhánh. Cần xóa các chi nhánh trước.</p>
+            <table>
+              <thead><tr><th>ID</th><th>Chi nhánh</th><th>Địa chỉ</th></tr></thead>
+              <tbody>{deleteBankBranches.map((b, index) => <tr key={b.id}><td>{index + 1}</td><td>{b.name}</td><td>{b.address}</td></tr>)}</tbody>
+            </table>
+            <div className="modal-footer">
+              <button onClick={() => { setDeleteBankId(null); setDeleteBankBranches([]); }}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+            {/* Modal Xem Danh Sách Chi Nhánh */}
       {showBranches && selectedBank && (
         <div className="modal">
           <div className="modal-content">
@@ -283,9 +324,9 @@ function Bank() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bankBranches.map((branch) => (
+                  {bankBranches.map((branch, index) => (
                     <tr key={branch.id}>
-                      <td>{branch.id}</td>
+                      <td>{index + 1}</td>
                       <td>{branch.name}</td>
                       <td>{branch.address}</td>
                     </tr>
