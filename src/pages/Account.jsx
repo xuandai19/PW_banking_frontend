@@ -109,6 +109,21 @@ function Account() {
         const response = await createAccount(newAccount);
         if (response.status === 202) {
           alert(response.data.message);
+<<<<<<< HEAD
+=======
+        } else {
+          const cl = response.data?.customerLogin;
+          if (cl) {
+            alert(
+              `Tạo tài khoản thành công!\n\n` +
+                `Đăng nhập khách hàng:\n` +
+                `• Username: ${cl.username}\n` +
+                `• Mật khẩu mặc định: ${cl.defaultPassword}\n\n` +
+                `Khách hàng phải đổi mật khẩu sau lần đăng nhập đầu tiên.\n` +
+                `Portal: /customer/login`
+            );
+          }
+>>>>>>> feature/v2_users
         }
       }
 

@@ -78,4 +78,38 @@ export function getCreatableRoles() {
 export function clearAuth() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+<<<<<<< HEAD
+=======
+    localStorage.removeItem("customerAccount");
+    localStorage.removeItem("tokenExpiresAt");
+    // Xóa cookie customer_token phía client (nếu không HttpOnly) – backend cũng clear khi logout
+    document.cookie = "customer_token=; Path=/; Max-Age=0; SameSite=Lax";
+}
+
+/**
+ * Lưu phiên đăng nhập khách hàng (token + thời điểm hết hạn).
+ * Token được backend set vào cookie HttpOnly; frontend giữ expiresAt để tự logout.
+ */
+export function saveCustomerSession({ token, user, account, expiresAt, expiresIn }) {
+    if (token) localStorage.setItem("token", token);
+    if (user) localStorage.setItem("user", JSON.stringify({ ...user, role: "CUSTOMER" }));
+    if (account) localStorage.setItem("customerAccount", JSON.stringify(account));
+    const exp =
+        expiresAt ||
+        (expiresIn ? Date.now() + Number(expiresIn) * 1000 : Date.now() + 15000);
+    localStorage.setItem("tokenExpiresAt", String(exp));
+}
+
+export function getTokenExpiresAt() {
+    const raw = localStorage.getItem("tokenExpiresAt");
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+}
+
+export function isTokenExpired() {
+    const exp = getTokenExpiresAt();
+    if (!exp) return false;
+    return Date.now() >= exp;
+>>>>>>> feature/v2_users
 }

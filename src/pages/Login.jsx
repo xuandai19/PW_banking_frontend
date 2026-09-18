@@ -60,6 +60,10 @@ function Login() {
 
                 <div className="auth-links">
                     <Link to="/forgot-password">Quên mật khẩu?</Link>
+<<<<<<< HEAD
+=======
+                    <Link to="/customer/login">Đăng nhập khách hàng</Link>
+>>>>>>> feature/v2_users
                 </div>
             </form>
         </div>
