@@ -475,13 +475,13 @@ function CustomerPortal() {
     };
 
     const navItems = [
-        { id: "home", label: "Tổng quan", icon: "⌂" },
-        { id: "transfer", label: "Chuyển khoản", icon: "↗", needVerify: true },
-        { id: "cash", label: "Nạp / Rút", icon: "⇄", needVerify: true },
-        { id: "history", label: "Lịch sử", icon: "☰", needVerify: true },
-        { id: "profile", label: "Hồ sơ", icon: "👤" },
-        { id: "otp", label: "Quản lý OTP", icon: "🔐", needVerify: true },
-        { id: "password", label: "Đổi mật khẩu", icon: "🔑" }
+        { id: "home", label: "Tổng quan"},
+        { id: "transfer", label: "Chuyển khoản"},
+        { id: "cash", label: "Nạp / Rút"},
+        { id: "history", label: "Lịch sử"},
+        { id: "profile", label: "Hồ sơ"},
+        { id: "otp", label: "Quản lý OTP"},
+        { id: "password", label: "Đổi mật khẩu"}
     ];
 
     const balanceDisplay = hideBalance
@@ -524,11 +524,6 @@ function CustomerPortal() {
                 <header className="cu-header">
                     <h1>Portal khách hàng</h1>
                     <div className="cu-header-user">
-                        {secondsLeft != null && (
-                            <span className={`cu-timer ${secondsLeft <= 5 ? "danger" : ""}`}>
-                                Phiên {secondsLeft}s
-                            </span>
-                        )}
                         <span className="cu-user-name">
                             {profile?.fullName || user?.fullName || user?.username}
                         </span>
@@ -910,76 +905,208 @@ function CustomerPortal() {
 
                     {/* PROFILE */}
                     {tab === "profile" && (
-                        <div className="cu-card">
-                            <h3>Hồ sơ tài khoản</h3>
-                            <div className="cu-profile-grid">
-                                <div className="cu-profile-item">
-                                    <span className="cu-muted">Họ tên</span>
-                                    <strong>{profile?.fullName || "—"}</strong>
+                        <div className="cu-profile-page">
+
+                            {/* PROFILE HEADER */}
+                            <div className="cu-profile-header">
+                                <div className="cu-profile-avatar">
+                                    {profile?.fullName
+                                        ? profile.fullName.charAt(0).toUpperCase()
+                                        : "U"}
                                 </div>
-                                <div className="cu-profile-item">
-                                    <span className="cu-muted">Số tài khoản (username)</span>
-                                    <strong>
-                                        {profile?.username || account?.accountNumber || "—"}
-                                    </strong>
-                                </div>
-                                <div className="cu-profile-item">
-                                    <span className="cu-muted">Email</span>
-                                    <strong>{profile?.email || "—"}</strong>
-                                </div>
-                                <div className="cu-profile-item">
-                                    <span className="cu-muted">Trạng thái xác thực</span>
-                                    <strong>
-                                        {isVerified ? "Đã xác thực (nội bộ)" : "Tài khoản ngoại"}
-                                    </strong>
-                                </div>
-                                <div className="cu-profile-item">
-                                    <span className="cu-muted">OTP giao dịch</span>
-                                    <strong>{profile?.hasOtp ? "Đã đặt" : "Chưa đặt"}</strong>
-                                </div>
-                                <div className="cu-profile-item">
-                                    <span className="cu-muted">Số dư</span>
-                                    <strong className="cu-balance-with-eye">
-                                        {hideBalance
-                                            ? "••••••••"
-                                            : account
-                                              ? formatMoney(account.balance)
-                                              : "—"}
-                                        <button
-                                            type="button"
-                                            className="cu-eye-btn"
-                                            onClick={() => setHideBalance((v) => !v)}
-                                            title={hideBalance ? "Hiện số dư" : "Ẩn số dư"}
+
+                                <div className="cu-profile-header-info">
+                                    <h2>{profile?.fullName || "Khách hàng"}</h2>
+
+                                    <span className="cu-account-number">
+                                        Số tài khoản:{" "}
+                                        <strong>
+                                            {profile?.username ||
+                                                account?.accountNumber ||
+                                                "—"}
+                                        </strong>
+                                    </span>
+
+                                    <div className="cu-profile-status">
+                                        <span
+                                            className={
+                                                isVerified
+                                                    ? "cu-status verified"
+                                                    : "cu-status unverified"
+                                            }
                                         >
-                                            {hideBalance ? "👁" : "👁‍🗨"}
-                                        </button>
-                                    </strong>
-                                </div>
-                                <div className="cu-profile-item">
-                                    <span className="cu-muted">Trạng thái TK ngân hàng</span>
-                                    <strong>{account?.status || "—"}</strong>
+                                            <span className="cu-status-dot"></span>
+
+                                            {isVerified
+                                                ? "Tài khoản đã xác thực"
+                                                : "Chưa xác thực"}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* ACCOUNT INFORMATION */}
+                            <div className="cu-card">
+                                <div className="cu-section-title">
+                                    <div>
+                                        <h3>Thông tin tài khoản</h3>
+                                        <p>Thông tin cơ bản của tài khoản ngân hàng</p>
+                                    </div>
+                                </div>
+
+                                <div className="cu-profile-grid">
+
+                                    <div className="cu-profile-item">
+                                        <span className="cu-muted">Họ và tên</span>
+                                        <strong>
+                                            {profile?.fullName || "—"}
+                                        </strong>
+                                    </div>
+
+                                    <div className="cu-profile-item">
+                                        <span className="cu-muted">
+                                            Số tài khoản
+                                        </span>
+                                        <strong>
+                                            {profile?.username ||
+                                                account?.accountNumber ||
+                                                "—"}
+                                        </strong>
+                                    </div>
+
+                                    <div className="cu-profile-item">
+                                        <span className="cu-muted">
+                                            Trạng thái tài khoản
+                                        </span>
+
+                                        <strong
+                                            className={
+                                                account?.status === "ACTIVE"
+                                                    ? "cu-text-success"
+                                                    : "cu-text-warning"
+                                            }
+                                        >
+                                            {account?.status || "—"}
+                                        </strong>
+                                    </div>
+
+                                    <div className="cu-profile-item">
+                                        <span className="cu-muted">
+                                            Trạng thái xác thực
+                                        </span>
+
+                                        <strong
+                                            className={
+                                                isVerified
+                                                    ? "cu-text-success"
+                                                    : "cu-text-warning"
+                                            }
+                                        >
+                                            {isVerified
+                                                ? "Đã xác thực"
+                                                : "Chưa xác thực"}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* SECURITY */}
+                            <div className="cu-card">
+                                <div className="cu-section-title">
+                                    <div>
+                                        <h3>Bảo mật tài khoản</h3>
+                                        <p>Quản lý các phương thức bảo mật giao dịch</p>
+                                    </div>
+                                </div>
+
+                                <div className="cu-security-list">
+
+                                    {/* OTP */}
+                                    <div className="cu-security-item">
+                                        <div className="cu-security-icon">
+                                            🔐
+                                        </div>
+
+                                        <div className="cu-security-info">
+                                            <strong>OTP giao dịch</strong>
+
+                                            <span>
+                                                {profile?.hasOtp
+                                                    ? "OTP đã được thiết lập"
+                                                    : "Bạn chưa thiết lập OTP"}
+                                            </span>
+                                        </div>
+
+                                        <div
+                                            className={
+                                                profile?.hasOtp
+                                                    ? "cu-security-status active"
+                                                    : "cu-security-status"
+                                            }
+                                        >
+                                            {profile?.hasOtp
+                                                ? "Đã thiết lập"
+                                                : "Chưa thiết lập"}
+                                        </div>
+                                    </div>
+
+                                    {/* PASSWORD */}
+                                    <div className="cu-security-item">
+                                        <div className="cu-security-icon">
+                                            🔑
+                                        </div>
+
+                                        <div className="cu-security-info">
+                                            <strong>Mật khẩu</strong>
+
+                                            <span>
+                                                Bảo vệ tài khoản bằng mật khẩu đăng nhập
+                                            </span>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            className="cu-security-action"
+                                            onClick={() => setTab("password")}
+                                        >
+                                            Đổi mật khẩu
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            {/* VERIFICATION */}
                             {!isVerified && (
-                                <button
-                                    type="button"
-                                    className="cu-btn primary"
-                                    style={{ marginTop: 16 }}
-                                    onClick={() => navigate("/customer/verify")}
-                                >
-                                    Xác thực tài khoản
-                                </button>
+                                <div className="cu-verification-card">
+
+                                    <div className="cu-verification-icon">
+                                        !
+                                    </div>
+
+                                    <div className="cu-verification-content">
+                                        <h3>Tài khoản chưa được xác thực</h3>
+
+                                        <p>
+                                            Vui lòng xác thực tài khoản để sử dụng
+                                            các chức năng giao dịch như chuyển khoản,
+                                            nạp/rút tiền và OTP.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="cu-btn primary"
+                                        onClick={() =>
+                                            navigate("/customer/verify")
+                                        }
+                                    >
+                                        Xác thực ngay
+                                    </button>
+
+                                </div>
                             )}
-                            {isVerified && (
-                                <button
-                                    type="button"
-                                    className="cu-btn secondary"
-                                    style={{ marginTop: 16 }}
-                                    onClick={() => lockAction("otp")}
-                                >
-                                    Quản lý OTP
-                                </button>
-                            )}
+
                         </div>
                     )}
 

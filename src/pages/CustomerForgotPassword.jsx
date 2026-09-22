@@ -10,6 +10,7 @@ function CustomerForgotPassword() {
     const [devLink, setDevLink] = useState("");
     const [emailPreview, setEmailPreview] = useState("");
     const [sentTo, setSentTo] = useState("");
+    const [emailMode, setEmailMode] = useState("");
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
@@ -19,6 +20,7 @@ function CustomerForgotPassword() {
         setDevLink("");
         setEmailPreview("");
         setSentTo("");
+        setEmailMode("");
 
         if (!email.trim() && !username.trim()) {
             setError("Nhập email hoặc số tài khoản (username).");
@@ -31,10 +33,20 @@ function CustomerForgotPassword() {
                 ? { email: email.trim() }
                 : { username: username.trim() };
             const res = await customerForgotPassword(payload);
-            setMessage(res.data.message || "Đã gửi hướng dẫn đặt lại mật khẩu.");
-            if (res.data._devResetLink) setDevLink(res.data._devResetLink);
-            if (res.data._emailPreview) setEmailPreview(res.data._emailPreview);
-            if (res.data._sentTo) setSentTo(res.data._sentTo);
+            const data = res.data || {};
+            setMessage(data.message || "Đã gửi hướng dẫn đặt lại mật khẩu.");
+            if (data._devResetLink) {
+                setDevLink(data._devResetLink);
+            }
+            if (data._emailPreview) {
+                setEmailPreview(data._emailPreview);
+            }
+            if (data._sentTo) {
+                setSentTo(data._sentTo);
+            }
+            if (data._emailMode) {
+                setEmailMode(data._emailMode);
+            }
         } catch (err) {
             setError(err.response?.data?.message || "Không thể gửi yêu cầu.");
         } finally {
@@ -61,6 +73,7 @@ function CustomerForgotPassword() {
                             if (e.target.value) setUsername("");
                         }}
                         placeholder="email@example.com"
+                        autoComplete="email"
                     />
                 </label>
 
@@ -78,28 +91,40 @@ function CustomerForgotPassword() {
                             if (e.target.value) setEmail("");
                         }}
                         placeholder="Số tài khoản"
+                        autoComplete="username"
                     />
                 </label>
 
                 {error && <p className="error-text">{error}</p>}
                 {message && <p className="success-text">{message}</p>}
                 {sentTo && (
-                    <p className="muted" style={{ fontSize: 13 }}>
+                    <p className="success-text" style={{ fontSize: 13 }}>
                         Đã gửi tới: <strong>{sentTo}</strong>
                     </p>
                 )}
-                {devLink && (
-                    <p className="muted" style={{ fontSize: 12, wordBreak: "break-all" }}>
-                        Dev link: <a href={devLink}>{devLink}</a>
-                    </p>
-                )}
-                {emailPreview && (
-                    <p className="muted" style={{ fontSize: 12 }}>
-                        Preview mail:{" "}
-                        <a href={emailPreview} target="_blank" rel="noreferrer">
-                            {emailPreview}
-                        </a>
-                    </p>
+
+                {(devLink || emailPreview) && (
+                    <div className="dev-link-box">
+                        <strong style={{ display: "block", marginBottom: 6 }}>
+                            Link đặt lại mật khẩu
+                            {emailMode ? ` (${emailMode})` : ""}:
+                        </strong>
+                        {devLink && (
+                            <a href={devLink} style={{ wordBreak: "break-all" }}>
+                                {devLink}
+                            </a>
+                        )}
+                        {emailPreview && (
+                            <>
+                                <strong style={{ display: "block", marginTop: 10 }}>
+                                    Xem email trên Ethereal:
+                                </strong>
+                                <a href={emailPreview} target="_blank" rel="noreferrer">
+                                    {emailPreview}
+                                </a>
+                            </>
+                        )}
+                    </div>
                 )}
 
                 <button type="submit" disabled={loading}>

@@ -45,7 +45,8 @@ function Account() {
     accountNumber: "",
     ownerName: "",
     balance: 0,
-    branchId: ""
+    branchId: "",
+    email: ""
   });
 
   // Step 2: Load danh sách Bank trong useEffect
@@ -106,11 +107,14 @@ function Account() {
           alert(response.data.message);
         }
       } else {
-        const response = await createAccount(newAccount);
+        const email = String(newAccount.email || "").trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          alert("Email khách hàng là bắt buộc và phải hợp lệ.");
+          return;
+        }
+        const response = await createAccount({ ...newAccount, email });
         if (response.status === 202) {
           alert(response.data.message);
-<<<<<<< HEAD
-=======
         } else {
           const cl = response.data?.customerLogin;
           if (cl) {
@@ -118,12 +122,12 @@ function Account() {
               `Tạo tài khoản thành công!\n\n` +
                 `Đăng nhập khách hàng:\n` +
                 `• Username: ${cl.username}\n` +
+                `• Email: ${cl.email || newAccount.email}\n` +
                 `• Mật khẩu mặc định: ${cl.defaultPassword}\n\n` +
                 `Khách hàng phải đổi mật khẩu sau lần đăng nhập đầu tiên.\n` +
                 `Portal: /customer/login`
             );
           }
->>>>>>> feature/v2_users
         }
       }
 
@@ -136,7 +140,8 @@ function Account() {
         accountNumber: "",
         ownerName: "",
         balance: 0,
-        branchId: ""
+        branchId: "",
+        email: ""
       });
     } catch (error) {
       alert(error.response?.data?.message || "An error occurred");
@@ -150,7 +155,8 @@ function Account() {
       accountNumber: account.accountNumber,
       ownerName: account.ownerName,
       balance: account.balance,
-      branchId: account.branchId
+      branchId: account.branchId,
+      email: account.email || ""
     });
 
     const branch = branches.find((item) => item.id === account.branchId);
@@ -181,7 +187,8 @@ function Account() {
       accountNumber: "",
       ownerName: "",
       balance: 0,
-      branchId: ""
+      branchId: "",
+      email: ""
     });
     setShowModal(true);
   };
@@ -293,6 +300,26 @@ function Account() {
                 }
               />
             </div>
+
+            {!editingAccount && (
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email khách hàng (bắt buộc)"
+                  value={newAccount.email}
+                  required
+                  onChange={(e) =>
+                    setNewAccount({
+                      ...newAccount,
+                      email: e.target.value
+                    })
+                  }
+                />
+                <p className="muted-text" style={{ marginTop: 4, fontSize: 12, color: "#666" }}>
+                  Email riêng của tài khoản – dùng để nhận link quên mật khẩu.
+                </p>
+              </div>
+            )}
 
             <div>
               <input

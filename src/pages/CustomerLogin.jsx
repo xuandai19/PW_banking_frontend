@@ -5,8 +5,10 @@ import { saveCustomerSession } from "../utils/auth";
 
 function CustomerLogin() {
     const navigate = useNavigate();
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -58,12 +60,6 @@ function CustomerLogin() {
         <div className="auth-page">
             <form className="auth-card" onSubmit={handleSubmit}>
                 <h1>Đăng nhập khách hàng</h1>
-                <p className="auth-subtitle">
-                    Sử dụng số tài khoản và mật khẩu được cấp
-                </p>
-                <p className="auth-subtitle" style={{ fontSize: 12, color: "#888" }}>
-                    Phiên đăng nhập hết hạn sau 15 giây (token lưu cookie).
-                </p>
 
                 <label>
                     Số tài khoản (username)
@@ -79,14 +75,26 @@ function CustomerLogin() {
 
                 <label>
                     Mật khẩu
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Mật khẩu"
-                        required
-                        autoComplete="current-password"
-                    />
+
+                    <div className="password-input-wrapper">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Mật khẩu"
+                            required
+                            autoComplete="current-password"
+                        />
+
+                        <button
+                            type="button"
+                            className="toggle-password-btn"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label="Toggle password visibility"
+                        >
+                            {showPassword ? "👁️" : "👁️‍🗨️"}
+                        </button>
+                    </div>
                 </label>
 
                 {error && <p className="error-text">{error}</p>}
@@ -96,8 +104,13 @@ function CustomerLogin() {
                 </button>
 
                 <div className="auth-links">
-                    <Link to="/customer/forgot-password">Quên mật khẩu?</Link>
-                    <Link to="/login">Đăng nhập nhân viên / admin</Link>
+                    <Link to="/customer/forgot-password">
+                        Quên mật khẩu?
+                    </Link>
+
+                    <Link to="/login">
+                        Đăng nhập nhân viên / admin
+                    </Link>
                 </div>
             </form>
         </div>

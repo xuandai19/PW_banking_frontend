@@ -78,8 +78,6 @@ export function getCreatableRoles() {
 export function clearAuth() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-<<<<<<< HEAD
-=======
     localStorage.removeItem("customerAccount");
     localStorage.removeItem("tokenExpiresAt");
     // Xóa cookie customer_token phía client (nếu không HttpOnly) – backend cũng clear khi logout
@@ -111,5 +109,4 @@ export function isTokenExpired() {
     const exp = getTokenExpiresAt();
     if (!exp) return false;
     return Date.now() >= exp;
->>>>>>> feature/v2_users
 }
